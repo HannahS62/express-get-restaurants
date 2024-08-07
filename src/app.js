@@ -1,6 +1,6 @@
 const express = require("express");
 const app = express();
-const { Restaurant } = require("../models/index.js");
+const { Restaurant, Menu, Item } = require("../models/index.js");
 const db = require("../db/connection");
 
 //Call app.use() and pass it express.json() so that we can parse the request body that contains JSON objects.
@@ -10,7 +10,16 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.get("/restaurants", async (req, res) => {
-  const restaurants = await Restaurant.findAll();
+  const restaurants = await Restaurant.findAll({
+    // include: {
+    //   model: Menu,
+    //   include: [
+    //     {
+    //       model: Item,
+    //     },
+    //   ],
+    // },
+  });
   res.json(restaurants);
 });
 
@@ -43,7 +52,8 @@ app.post("/restaurants", async (req, res) => {
     location: req.body.location,
     cuisine: req.body.cuisine,
   });
-  res.status(201).json(restaurant);
+  const restaurants = await Restaurant.findAll({});
+  res.status(201).json(restaurants);
 });
 
 //Create an express route for updating (replacing) an existing restaurant with a new restaurant in your restaurant database based on ID in the route.
