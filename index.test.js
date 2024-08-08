@@ -3,6 +3,7 @@ const app = require("./src/app.js");
 const db = require("./db/connection.js");
 const { Restaurant } = require("./models/index.js");
 const syncSeed = require("./seed.js");
+const { check, validationResult } = require("express-validator");
 let restQuantity;
 
 beforeAll(async () => {
@@ -80,4 +81,69 @@ describe("./restaurants endpoint", () => {
   //     expect(restaurants.length).toEqual(restQuantity);
   //     expect(restaurants[0].id).not.toEqual(1);
   //   });
+});
+
+describe("restaurant Express Validation", () => {
+  it("returns 201 status code when correct data passed", async () => {
+    const response = await request(app)
+      .post("/restaurants")
+      .set("Content-Type", "application/json")
+      .send({
+        name: "Jive",
+        location: "Norwich",
+        cuisine: "Mexican",
+      });
+    expect(response.statusCode).toBe(201);
+  });
+  it("returns an error if name is missing", async () => {
+    const response = await request(app)
+      .post("/restaurants")
+      .set("Content-Type", "application/json")
+      .send({
+        location: "Norwich",
+        cuisine: "Mexican",
+      });
+    expect(response.statusCode).toBe(400);
+    expect(response.body.error).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: "name",
+        }),
+      ])
+    );
+  });
+  it("returns an error if location is missing", async () => {
+    const response = await request(app)
+      .post("/restaurants")
+      .set("Content-Type", "application/json")
+      .send({
+        name: "Jive",
+        cuisine: "Mexican",
+      });
+    expect(response.statusCode).toBe(400);
+    expect(response.body.error).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: "location",
+        }),
+      ])
+    );
+  });
+  it("returns an error if cuisine is missing", async () => {
+    const response = await request(app)
+      .post("/restaurants")
+      .set("Content-Type", "application/json")
+      .send({
+        name: "Jive",
+        location: "Norwich",
+      });
+    expect(response.statusCode).toBe(400);
+    expect(response.body.error).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: "cuisine",
+        }),
+      ])
+    );
+  });
 });

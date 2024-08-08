@@ -5,9 +5,8 @@ const db = require("../db/connection");
 
 //Call app.use() and pass it express.json() so that we can parse the request body that contains JSON objects.
 app.use(express.json());
-
-//Call app.use() and pass it express.urlencoded() so that we can parse the request body with urlencoded values.
 app.use(express.urlencoded({ extended: true }));
+const { check, validationResult } = require("express-validator");
 
 app.get("/restaurants", async (req, res) => {
   const restaurants = await Restaurant.findAll({
@@ -31,6 +30,27 @@ app.get("/restaurants/:id", async (req, res) => {
     res.status(404).json({ error: "restaurant not found" });
   }
 });
+
+//POST USING EXPRESS VALIDATION
+
+app.post(
+  "/restaurants",
+  [check(["name", "location", "cuisine"]).notEmpty().trim()],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.status(400).json({ error: errors.array() });
+    } else {
+      const restaurant = await Restaurant.create({
+        name: req.body.name,
+        location: req.body.location,
+        cuisine: req.body.cuisine,
+      });
+      const restaurants = await Restaurant.findAll({});
+      res.status(201).json(restaurants);
+    }
+  }
+);
 
 // Create an Express route for creating (adding) a new restaurant on your restaurant database.
 app.post("/restaurants", async (req, res) => {
